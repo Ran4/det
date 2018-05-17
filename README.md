@@ -28,6 +28,22 @@ $ det stream personnummer  # Forever streams from the `personnummer` descriptor
 ^C
 ```
 
+```bash
+$ det get integer -n 4  # Forty random integers
+489
+472
+58
+268
+```
+
+```bash
+$ det get integer -n 4 --source always_one --no-random
+1
+1
+1
+1
+```
+
 ## Concept overview
 
 * **Descriptor** - A string `{descriptor_name}:{descriptor_tag}`.

@@ -109,7 +109,7 @@ def try_find_descriptor_source(descriptor: Descriptor, args) \
         return descriptor.sources[source_name]
     except KeyError as e:
         raise KeyError(
-            f"Couldn't find source named `{args.source_name}` "
+            f"Couldn't find source named `{source_name}` "
             f"from descriptor `{descriptor}`.\nAvailable sources: "
             + ", ".join(descriptor.sources.keys())) from e
         

@@ -48,7 +48,14 @@ def main():
     
     if len(sys.argv) > 1:
         parsed_args = parser.parse_args()
+        
+        # Make sure --no-random overrides --random:
+        # TODO: Figure out a way to do this with argparse's config 
+        if parsed_args.no_random:
+            parsed_args.random = False
+            
         log.info("args: %s", parsed_args)
+            
         det(parsed_args)
     else:
         args = parser.print_help()

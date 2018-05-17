@@ -17,7 +17,7 @@
                 "cmd": "python -c \"for i in range(500): print(i)\""
             },
             "always_one": {
-                "cmd": "python3 foreverprint.py"
+                "cmd": "sh -c 'while true; do echo 1; done'"
             }
         }
     }
