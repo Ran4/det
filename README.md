@@ -35,7 +35,22 @@ $ det stream personnummer  # Forever streams from the `personnummer` descriptor
     
 * **Descriptor source** - Each Descriptor should have one or more descriptor sources.
     Describes how to generate values for a specific descriptor.
-    Every source is named, with the default source name `default`.
+    Every source is named, with the default source name being `default`.
+    
+* **Descriptor pipeline** - Describes how to transform a value before
+    output.
+    Every pipeline is named, with the default pipeline name being `default`.
+    
+The descriptors with their sources and pipelines are defined in a file `descriptors.json`,
+which should fulfill the schema found in [schemas/descriptors.js](schemas/descriptors.js).
+
+By default, `det` will try to load descriptors from the following directories:
+
+```
+$HOME/.config/det/descriptors.json
+descriptors.json
+default_descriptor_config/descriptors.json
+```
 
 ## Installing
 
