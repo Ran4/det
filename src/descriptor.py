@@ -84,14 +84,20 @@ def try_find_existing_descriptor_name_and_tag(
     if f"{guess_name}:{guess_tag}" in config.available_descriptors.keys():
         return guess_name, guess_tag
     else:
-        print(f"Did not find `{guess_name}:{guess_tag}`")
+        log.debug(
+            f"Could not find `{guess_name}:{guess_tag}`. Looking for aliases")
     
     try:
+        alias = guess_name
         guess_name = config.descriptor_aliases[guess_name]
+        log.debug(f"Found descriptor_name alias `{alias}` -> `{guess_name}`")
     except KeyError as e:
-        print(f"Found no alias for {guess_name}")
+        msg = f"Found no alias for {guess_name}"
+        log.debug(msg)
+        raise Exception(msg) from e
         
-    if "{guess_name}:{guess_tag}" in available_descriptors.keys():
+    if f"{guess_name}:{guess_tag}" in config.available_descriptors.keys():
+        log.debug(f"Using descriptor `{guess_name}:{guess_tag}`")
         return guess_name, guess_tag
     else:
         raise KeyError(f"Could not find descriptor `{guess_name}:{guess_tag}`")
