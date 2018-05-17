@@ -7,7 +7,7 @@ def add_reading_args_to_parser(parser) -> None:
     parser.add_argument("descriptor", type=str)
     
     parser.add_argument("-r", "--random", action='store_true',
-        help="Get random")
+        help="Random output (reads entire source before writing)")
     
     parser.add_argument("-s", "--source-name", type=str, default="default",
         metavar="SOURCE_NAME",
@@ -19,6 +19,8 @@ def add_reading_args_to_parser(parser) -> None:
 def add_get_subcommand_parser(subparsers) -> None:
     get_subparser = subparsers.add_parser("get", help="Get objects")
     add_reading_args_to_parser(get_subparser)
+    
+    get_subparser.set_defaults(random=True)
     get_subparser.set_defaults(subcommand="get")
     
 def add_stream_subcommand_parser(subparsers) -> None:
