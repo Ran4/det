@@ -3,6 +3,9 @@
         "sources": {
             "default": {
                 "file": "example_data/swedishpersonnummers.txt"
+            },
+            "increasing": {
+                "cmd": "python -c \"for i in range(500): print(i)\""
             }
         },
         "pipelines": {

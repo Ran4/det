@@ -1,5 +1,7 @@
 from typing import List, Dict, Any, Optional
 from abc import ABC
+import subprocess
+import shlex
 
 from descriptor_config import DescriptorConfig
 from helpers import map_dict
@@ -21,12 +23,32 @@ class DescriptorSourceFile(DescriptorSource):
             for line in f:
                 line_without_trailing_newline = line[:-1]
                 yield line_without_trailing_newline
+                
+class DescriptorSourceCommand(DescriptorSource):
+    def __init__(self, command: List[str]):
+        if isinstance(command, str):
+            raise Exception("Command must be given as list of str")
+        self.command = command
+
+    def get_values(self):
+        popen = subprocess.Popen(self.command,
+                                stdout=subprocess.PIPE,
+                                universal_newlines=True)
+        for stdout_line in iter(popen.stdout.readline, ""):
+            stdout_line_without_newline = stdout_line[:-1]
+            yield stdout_line_without_newline
+        popen.stdout.close()
+        return_code = popen.wait()
+        if return_code:
+            raise subprocess.CalledProcessError(return_code, cmd)
     
 def descriptor_source_from_dict(d: Dict) -> DescriptorSource:
     """d is e.g. `{ "file": "example_data/swedishpersonnummers.txt"}`
     """
     if "file" in d:
         return DescriptorSourceFile(filename=d["file"])
+    elif "cmd" in d:
+        return DescriptorSourceCommand(command=shlex.split(d["cmd"]))
     else:
         raise RuntimeError(f"Couldn't create DescriptorSource from {d}")
     
