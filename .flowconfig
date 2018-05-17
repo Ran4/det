@@ -1,0 +1,12 @@
+[ignore]
+schemas/
+
+[include]
+
+[libs]
+
+[lints]
+
+[options]
+
+[strict]

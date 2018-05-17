@@ -5,11 +5,15 @@ import random
 import sys
 
 from commandline_parsing import get_toplevel_parser
+from descriptor_config import descriptor_config_from_args
 from descriptor import Descriptor, descriptor_from_raw_string
 from setup_logging import log
 
 def det(args):
-    descriptor: Descriptor = descriptor_from_raw_string(args.descriptor)
+    config = descriptor_config_from_args(args)
+    
+    descriptor: Descriptor = \
+        descriptor_from_raw_string(config, args.descriptor)
     
     if args.subcommand in ["get", "stream"]:
         values = descriptor.get_values(args)

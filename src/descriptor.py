@@ -1,7 +1,7 @@
 from typing import List, Dict, Any, Optional
 from abc import ABC
 
-from descriptor_data import descriptor_aliases, available_descriptors
+from descriptor_config import DescriptorConfig
 from helpers import map_dict
 from setup_logging import log
 
@@ -30,10 +30,10 @@ def descriptor_source_from_dict(d: Dict) -> DescriptorSource:
     else:
         raise RuntimeError(f"Couldn't create DescriptorSource from {d}")
     
-def get_descriptor_sources_dict(descriptor_name, descriptor_tag) -> \
+def get_descriptor_sources_dict(config, descriptor_name, descriptor_tag) -> \
         Dict[str, DescriptorSource]:
     descriptor_sources_dict: Dict[str, Dict] = \
-        available_descriptors[f"{descriptor_name}:{descriptor_tag}"] \
+        config.available_descriptors[f"{descriptor_name}:{descriptor_tag}"] \
         .get("sources", {})
         
     if not descriptor_sources_dict:
@@ -68,8 +68,8 @@ def try_find_descriptor_source(descriptor: Descriptor, args) \
             f"Couldn't find source named `{args.source_name}` "
             f"from descriptor `{descriptor}`") from e
         
-def try_find_existing_descriptor_name_and_tag(raw_descriptor_string: str) \
-        -> (str, str):
+def try_find_existing_descriptor_name_and_tag(
+        config: DescriptorConfig, raw_descriptor_string: str) -> (str, str):
     """Returns a tuple of descriptor_name, descriptor_tag or raises"""
     log.debug('try_find_existing_descriptor_name_and_tag("%s")',
               raw_descriptor_string)
@@ -81,13 +81,13 @@ def try_find_existing_descriptor_name_and_tag(raw_descriptor_string: str) \
         
     log.debug(f"Looking for descriptor `{guess_name}:{guess_tag}`")
         
-    if f"{guess_name}:{guess_tag}" in available_descriptors.keys():
+    if f"{guess_name}:{guess_tag}" in config.available_descriptors.keys():
         return guess_name, guess_tag
     else:
         print(f"Did not find `{guess_name}:{guess_tag}`")
     
     try:
-        guess_name = descriptor_aliases[guess_name]
+        guess_name = config.descriptor_aliases[guess_name]
     except KeyError as e:
         print(f"Found no alias for {guess_name}")
         
@@ -100,11 +100,13 @@ def descriptor_from_descriptor_name_and_tag(descriptor_name, descriptor_tag) \
         -> Optional[Descriptor]:
     return 
 
-def descriptor_from_raw_string(raw_descriptor_string: str) -> Optional[Descriptor]:
+def descriptor_from_raw_string(
+        config, raw_descriptor_string: str) -> Optional[Descriptor]:
     descriptor_name, descriptor_tag = \
-        try_find_existing_descriptor_name_and_tag(raw_descriptor_string)
+        try_find_existing_descriptor_name_and_tag(config, raw_descriptor_string)
     descriptor = Descriptor(name=descriptor_name,
                             tag=descriptor_tag,
-                            sources=get_descriptor_sources_dict(descriptor_name,
+                            sources=get_descriptor_sources_dict(config,
+                                                                descriptor_name,
                                                                 descriptor_tag))
     return descriptor

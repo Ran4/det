@@ -12,8 +12,6 @@ def get_logger():
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     logger.setLevel(logging.DEBUG)
-
-    logger.debug("BEGIN LOGGING\n")
     return logger
 
 log = get_logger()

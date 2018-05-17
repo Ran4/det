@@ -31,7 +31,7 @@ $ det stream personnummer  # Forever streams from the `personnummer` descriptor
 ## Concept overview
 
 * **Descriptor** - A string `{descriptor_name}:{descriptor_tag}`.
-    When the `descriptor_tag` is ommitted, `default` is used instead.
+    When the `descriptor_tag` is missing, `default` is used instead.
     
 * **Descriptor source** - Each Descriptor should have one or more descriptor sources.
     Describes how to generate values for a specific descriptor.

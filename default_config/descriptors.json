@@ -1,0 +1,14 @@
+{
+    "personnummer:default": {
+        "sources": {
+            "default": {
+                "file": "example_data/swedishpersonnummers.txt"
+            }
+        },
+        "pipelines": {
+            "sql": {
+                "template": "INSERT INTO {dbname} VALUES {0}"
+            }
+        }
+    }
+}
