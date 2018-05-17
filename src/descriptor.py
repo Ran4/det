@@ -68,37 +68,47 @@ def try_find_descriptor_source(descriptor: Descriptor, args) \
             f"Couldn't find source named `{args.source_name}` "
             f"from descriptor `{descriptor}`") from e
         
-def try_find_existing_descriptor_name_and_tag(
-        config: DescriptorConfig, raw_descriptor_string: str) -> (str, str):
-    """Returns a tuple of descriptor_name, descriptor_tag or raises"""
-    log.debug('try_find_existing_descriptor_name_and_tag("%s")',
-              raw_descriptor_string)
-    # Convert e.g. "hello" or "hello:default" into ("hello", "default"):
+def split_descriptor_string(raw_descriptor_string) -> (str, str):
+    """Converts e.g. "hello" or "hello:default" into ("hello", "default")"""
     if ":" in raw_descriptor_string:  # e.g. "hello" -> ("hello", "world")
-        guess_name, guess_tag = raw_descriptor_string
-    else:  # e.g. "hello:world" -> ("hello", "world")
-        guess_name, guess_tag = raw_descriptor_string, "default"
-        
-    log.debug(f"Looking for descriptor `{guess_name}:{guess_tag}`")
-        
-    if f"{guess_name}:{guess_tag}" in config.available_descriptors.keys():
+        guess_name, guess_tag = raw_descriptor_string.split(":")
         return guess_name, guess_tag
-    else:
-        log.debug(
-            f"Could not find `{guess_name}:{guess_tag}`. Looking for aliases")
+    else:  # e.g. "hello:world" -> ("hello", "world")
+        return raw_descriptor_string, "default"
     
+def try_alias_lookup(config, alias: str) -> (str, str):
     try:
-        alias = guess_name
-        guess_name = config.descriptor_aliases[guess_name]
-        log.debug(f"Found descriptor_name alias `{alias}` -> `{guess_name}`")
+        new_raw_descriptor_string = config.descriptor_aliases[alias]
     except KeyError as e:
-        msg = f"Found no alias for {guess_name}"
+        msg = f"Found no descriptor or alias matching {alias}"
         log.debug(msg)
         raise Exception(msg) from e
+    
+    guess_name, guess_tag = \
+        split_descriptor_string(new_raw_descriptor_string)
+    log.debug("Found descriptor_name alias "
+              f"`{alias}` -> `{guess_name}:{guess_tag}`")
+    return guess_name, guess_tag
+        
+def try_find_existing_descriptor_name_and_tag(
+        config: DescriptorConfig,
+        raw_descriptor_string: str,
+        look_for_alias_on_missing: bool=True) -> (str, str):
+    """Returns a tuple of descriptor_name, descriptor_tag or raises"""
+    guess_name, guess_tag = split_descriptor_string(raw_descriptor_string)
+    log.debug(f"Looking for descriptor `{guess_name}:{guess_tag}`")
         
     if f"{guess_name}:{guess_tag}" in config.available_descriptors.keys():
         log.debug(f"Using descriptor `{guess_name}:{guess_tag}`")
         return guess_name, guess_tag
+    
+    if look_for_alias_on_missing:
+        log.debug(
+            f"Could not find `{guess_name}:{guess_tag}`. Looking for aliases")
+        guess_name, guess_tag = try_alias_lookup(config, alias=guess_name)
+        return try_find_existing_descriptor_name_and_tag(
+            config, f"{guess_name}:{guess_tag}",
+            look_for_alias_on_missing=False)
     else:
         raise KeyError(f"Could not find descriptor `{guess_name}:{guess_tag}`")
 

@@ -1,5 +1,5 @@
 {
-    "personnummer:default": {
+    "swedishpersonnummer:default": {
         "sources": {
             "default": {
                 "file": "example_data/swedishpersonnummers.txt"
