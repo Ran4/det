@@ -52,6 +52,13 @@ descriptors.json
 default_descriptor_config/descriptors.json
 ```
 
+It can also be explicitly given with `--descriptors-file DESCRIPTORS_FILE`.
+
+Since descriptors can be wordy at time, you can define aliases for descriptors using
+`descriptor_aliases.json` file (found in the same directories as `descriptors.json`
+or given using `--descriptor-aliases-file DESCRIPTOR_ALIASES_FILE`),
+see [default\_descriptor\_config/descriptor\_aliases.json](default_descriptor_config/descriptor_aliases.json).
+
 ## Installing
 
 Clone the repo. Run `./src/det.py`.
