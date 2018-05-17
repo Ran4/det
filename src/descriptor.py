@@ -9,7 +9,7 @@ from setup_logging import log
 
 class DescriptorSource(ABC):
     def __init__(self):
-        pass
+        raise Exception("DescriptorSource is an abstract baseclass")
     
     def get_values(self):
         raise Exception("DescriptorSource is an abstract baseclass")
@@ -40,7 +40,20 @@ class DescriptorSourceCommand(DescriptorSource):
         popen.stdout.close()
         return_code = popen.wait()
         if return_code:
-            raise subprocess.CalledProcessError(return_code, cmd)
+            raise subprocess.CalledProcessError(return_code, self.command)
+        
+class DescriptorPipeline(ABC):
+    def __init__(self):
+        raise Exception("DescriptorSource is an abstract baseclass")
+    
+    
+class DescriptorTemplatePipeline(DescriptorPipeline):
+    def __init__(self, template):
+        self.template = template
+
+    def apply(self):
+        # TODO: Implement this
+        pass
     
 def descriptor_source_from_dict(d: Dict) -> DescriptorSource:
     """d is e.g. `{ "file": "example_data/swedishpersonnummers.txt"}`
@@ -52,43 +65,53 @@ def descriptor_source_from_dict(d: Dict) -> DescriptorSource:
     else:
         raise RuntimeError(f"Couldn't create DescriptorSource from {d}")
     
-def get_descriptor_sources_dict(config, descriptor_name, descriptor_tag) -> \
+def get_descriptor_sources_dict(config, descriptor_dict: Dict) -> \
         Dict[str, DescriptorSource]:
-    descriptor_sources_dict: Dict[str, Dict] = \
-        config.available_descriptors[f"{descriptor_name}:{descriptor_tag}"] \
-        .get("sources", {})
-        
-    if not descriptor_sources_dict:
-        print("WARNING: Found no sources for "
-              f"`{descriptor_name}:{descriptor_tag}`")
-        
+    descriptor_sources_dict = descriptor_dict.get("sources", {})
     return map_dict(descriptor_source_from_dict, descriptor_sources_dict)
+
+def pipeline_from_dict(d: Dict) -> DescriptorPipeline:
+    if "template" in d:
+        return DescriptorTemplatePipeline(template=d["template"])
+    else:
+        raise RuntimeError(f"Couldn't create DescriptorPipeLine from {d}")
+
+def get_pipelines(config, descriptor_dict: Dict) -> \
+        Dict[str, DescriptorPipeline]:
+    descriptor_pipelines_dict = descriptor_dict.get("pipelines", {})
+    return map_dict(pipeline_from_dict, descriptor_pipelines_dict)
 
 class Descriptor:
     def __init__(self,
             name: str,
             tag: Optional[str]=None,
             sources: Optional[Dict[str, DescriptorSource]]=None,
+            pipelines: Optional[Dict[str, DescriptorPipeline]]=None,
             ):
         self.name = name
         self.tag = tag
         self.sources: Dict[str, DescriptorSource] = \
             sources if sources is not None else {}
+        self.pipelines: Dict[str, DescriptionPipeline] = \
+            pipelines if pipelines is not None else {}
 
     def __str__(self):
         return f"{self.name}:{self.tag}"
     
     def get_values(self, args):
-        return try_find_descriptor_source(self, args).get_values()
+        descriptor_source = try_find_descriptor_source(self, args)
+        return descriptor_source.get_values()
     
 def try_find_descriptor_source(descriptor: Descriptor, args) \
         -> DescriptorSource:
+    source_name: str = args.source
     try:
-        return descriptor.sources[args.source_name]
+        return descriptor.sources[source_name]
     except KeyError as e:
         raise KeyError(
             f"Couldn't find source named `{args.source_name}` "
-            f"from descriptor `{descriptor}`") from e
+            f"from descriptor `{descriptor}`.\nAvailable sources: "
+            + ", ".join(descriptor.sources.keys())) from e
         
 def split_descriptor_string(raw_descriptor_string) -> (str, str):
     """Converts e.g. "hello" or "hello:default" into ("hello", "default")"""
@@ -142,9 +165,24 @@ def descriptor_from_raw_string(
         config, raw_descriptor_string: str) -> Optional[Descriptor]:
     descriptor_name, descriptor_tag = \
         try_find_existing_descriptor_name_and_tag(config, raw_descriptor_string)
+        
+    descriptor_dict = \
+        config.available_descriptors[f"{descriptor_name}:{descriptor_tag}"]
+        
+    descriptor_sources = get_descriptor_sources_dict(config, descriptor_dict)
+    descriptor_pipelines = get_pipelines(config, descriptor_dict)
+    
+    if not descriptor_sources:
+        print("WARNING: Found no sources for "
+              f"`{descriptor_name}:{descriptor_tag}`")
+    
+    if not descriptor_pipelines:
+        print("NOTE: Found no pipelines for "
+              f"`{descriptor_name}:{descriptor_tag}`")
+        
+    
     descriptor = Descriptor(name=descriptor_name,
                             tag=descriptor_tag,
-                            sources=get_descriptor_sources_dict(config,
-                                                                descriptor_name,
-                                                                descriptor_tag))
+                            sources=descriptor_sources,
+                            pipelines=descriptor_pipelines)
     return descriptor

@@ -15,7 +15,7 @@ def add_reading_args_to_parser(parser) -> None:
     parser.add_argument("-r", "--random", action='store_true',
         help="Random output (reads entire source before writing)")
     
-    parser.add_argument("-s", "--source-name", type=str, default="default",
+    parser.add_argument("-s", "--source", type=str, default="default",
         metavar="SOURCE_NAME",
         help='(default "default")')
         

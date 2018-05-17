@@ -28,7 +28,7 @@ type DescriptorsFile = {
 }
 
 let exampleDescriptorsFile: DescriptorsFile = {
-    "personnummer:default": {
+    "swedish_personnummer:default": {
             "sources": {
                 "default": {
                     "file": "example_data/swedishpersonnummers.txt"
